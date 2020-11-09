@@ -1,5 +1,4 @@
 
-
 /*
     *A slant board is N x M in size
         - minimum size is 1x1 (one slant, four numbers)
@@ -34,13 +33,13 @@
         
 
 */
+
 :- use_module(library(clpfd)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 
 /*
 :- initialization main, halt.
-
 */
 
 main :- 
