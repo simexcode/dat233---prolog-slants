@@ -45,30 +45,30 @@
 main :- 
     write('Hello, World!'), nl.
 
+start:- 
 
+    Numbers =  [[_, _, _],
+                [_, _, _],
+                [_, _, _]],
 
-
-
-
+    puzzle(Slants, Numbers, 2, 2), 
+    maplist(label, Slants), maplist(portray_clause, Slants),
+    maplist(label, Numbers), maplist(portray_clause, Numbers).
 
 list(N, Ls) :-
     length(Ls, N).
 
 matcher([],[],0).
 matcher([E | List], [P | Pattern], Num):-
-    E #\= P,
+    nth0(0, P, El),
+    El #\= P,
     matcher(List, Pattern, Num).
 matcher([E | List], [P | Pattern], Num):-
-    E #= P,
+    nth0(0, P, El),
+    El #= P,
     matcher(List, Pattern, R),
     Num #= R +1.
 
-list_sum([Item], Item).
-list_sum([Item1,Item2 | Tail], Total) :-
-    list_sum([Item1+Item2|Tail], Total).
-
-equals(X,Y,Z,Y) :-
-    (X #= Y -> Y #= Z+1; Y #= 0).
 
 puzzle(Slants, Numbers, N, M) :-
     /* 1. make sure the size is correct*/
@@ -86,7 +86,6 @@ puzzle(Slants, Numbers, N, M) :-
     append(Numbers, Vs), Vs ins 0..5,           /* a slant must have a value of 0 or 1 ('/ or '\') */
 
     /* 4. looking at a cell (number) make sure that it does not have more neighbours (slants) pointing to it then is allowed */
-
     length(Border, 1),
     maplist(list(M), Border), 
     append(Border, Bs), 
@@ -94,43 +93,15 @@ puzzle(Slants, Numbers, N, M) :-
 
     append(Slants, Border, Temp),
     append(Border, Temp, D),
-    /*D = [Border, Slants, Border].*/
     column(Numbers, D).
-   /* numbers(Ns, Border, S1, S2).*/
 
 /**/
 
 
 column([],_).
-column([N | Nr], [S1, S2 | Sr]) :-
-    append(S1, -1, Temp),
-    append(-1, Temp, D1),
-    append(S2, -1, Temp2),
-    append(-1, Temp2, D2),
-    numbers(N, D1, D2),
+column([N | Nr], [S1, S2 | Sr]) :-   
+    numbers(N, [[5], S1, [5]], [[5], S2, [5]]),
     column(Nr, [S2, Sr]).
-
-
-start:- 
-/*
-    matcher([-1,-1, -1, -1], [1, 0, 0, 1], N),
-    write(N), nl,
-    
-    T = [_, 0, _],
-    L = [-1,-1,-1, -1],
-    R = [-1, _, _, -1],
-
-
-    numbers(T, L, R),
-    write(T), write(L), write(R).
-    */
-
-    Num = [
-    [0,_,_], 
-    [_, _, _], 
-    [1, 1, 0]],
-    puzzle(_, Num, 2, 2). 
-    maplist(label, Num), maplist(portray_clause, Num).
 
 numbers([], _, _).
 numbers([N | Nr], [_, T2 | Tr], [_, B2 | Br]):-
@@ -138,15 +109,9 @@ numbers([N | Nr], [_, T2 | Tr], [_, B2 | Br]):-
     numbers(Nr, [T2, Tr], [B2, Br]).
 
 numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br]) :-
-    merge_list(T1, T2, M),
-    merge_list(M, B1, M2),
-    merge_list(M2, B2, M3),
     matcher([T1, T2, B1, B2], [1, 0, 0, 1], Num),
     N #= Num,    
     numbers(Nr, [T2, Tr], [B2, Br]).
-
-
-
     
 merge_list([],L,L ).
 merge_list([H|T],L,[H|M]):-
