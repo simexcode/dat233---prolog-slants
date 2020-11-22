@@ -30,30 +30,12 @@
         3. make sure that each slant has a valid value 0 -> 1 ('/'' or '\'')
         4. looking at a cell (number) make sure that it does not have more neighbours (slants) pointing to it then is allowed
         5. make sure no slant is set in a way that would create a loop
-        
-
 */
 
 :- use_module(library(clpfd)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 
-/*
-:- initialization main, halt.
-*/
-
-main :- 
-    write('Hello, World!'), nl.
-
-start:- 
-
-    Numbers =  [[_, _, _],
-                [_, _, _],
-                [_, _, _]],
-
-    puzzle(Slants, Numbers, 2, 2), 
-    maplist(label, Slants), maplist(portray_clause, Slants),
-    maplist(label, Numbers), maplist(portray_clause, Numbers).
 
 list(N, Ls) :-
     length(Ls, N).
@@ -69,11 +51,17 @@ matcher([E | List], [P | Pattern], Num):-
     matcher(List, Pattern, R),
     Num #= R +1.
 
+list_sum([Item], Item).
+list_sum([Item1,Item2 | Tail], Total) :-
+    list_sum([Item1+Item2|Tail], Total).
+
+equals(X,Y,Z,Y) :-
+    (X #= Y -> Y  Z+1; Y #= 0).
 
 puzzle(Slants, Numbers, N, M) :-
     /* 1. make sure the size is correct*/
     N > 0 , M > 0,                              /* slant board must be 1x1 or bigger */
-    N2 is N+1, M2 is M+1,
+    N2 #= N+1, M2 #= M+1,
 
     /* 2. make sure that each slant has a valid value 0 -> 1 ('/'' or '\'') */
     length(Slants, N),                          /* length of colums is N */
@@ -92,10 +80,9 @@ puzzle(Slants, Numbers, N, M) :-
     Bs ins -1,
 
     append(Slants, Border, Temp),
-    append(Border, Temp, D),
-    column(Numbers, D).
+    append(Border, Temp, D).
 
-/**/
+    column(Numbers, D).
 
 
 column([],_).
@@ -112,9 +99,4 @@ numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br]) :-
     matcher([T1, T2, B1, B2], [1, 0, 0, 1], Num),
     N #= Num,    
     numbers(Nr, [T2, Tr], [B2, Br]).
-    
-merge_list([],L,L ).
-merge_list([H|T],L,[H|M]):-
-    merge_list(T,L,M).
-
     

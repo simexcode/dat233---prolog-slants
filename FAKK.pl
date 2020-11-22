@@ -14,6 +14,33 @@ fun :-
     maplist(label, S), 
     maplist(portray_clause, S).
 
+bigtest :-
+    N = [
+        [5,5,5,5,5, 5,1,5,5,5, 5,5,5,5,5, 5,1,5,5,5, 5],
+        [5,2,2,2,2, 2,5,3,5,5, 3,1,5,1,5, 3,2,5,1,2, 5],
+        [5,5,5,5,5, 5,3,5,1,5, 3,5,3,2,5, 2,1,3,5,5, 1],
+        [1,5,1,5,5, 3,1,3,5,5, 2,2,5,5,2, 2,5,5,2,5, 5],
+        [1,5,2,2,3, 3,5,5,5,2, 5,1,5,2,5, 2,1,3,5,3, 1],
+        [5,1,5,3,2, 5,5,5,2,5, 2,5,5,5,5, 3,5,5,2,1, 5],
+        [5,3,5,5,5, 2,5,5,3,3, 2,5,5,3,1, 5,5,5,3,5, 5],
+        [1,1,5,5,5, 5,5,3,2,1, 2,2,3,5,5, 5,5,2,5,2, 1],
+        [5,5,2,5,5, 2,3,5,2,2, 2,5,5,2,5, 3,5,1,1,2, 5],
+        [5,1,2,3,5, 1,5,2,5,5, 5,2,5,5,3, 5,5,3,5,5, 1],
+        [5,5,3,5,3, 1,3,2,5,2, 2,5,3,5,5, 2,5,5,3,2, 5],
+        [5,3,5,5,2, 5,5,5,5,2, 2,3,1,5,5, 2,2,2,1,2, 5],
+        [5,5,3,1,5, 2,5,2,5,5, 5,3,2,5,5, 1,2,5,2,5, 1],
+        [5,5,5,5,1, 5,1,5,3,2, 5,5,5,3,5, 1,2,1,2,3, 5],
+        [5,5,2,1,5, 5,5,2,1,1, 5,5,5,3,2, 5,2,5,5,5, 5],
+        [5,2,2,5,2, 3,2,5,3,2, 5,5,3,5,5, 5,1,1,2,2, 5],
+        [5,2,5,5,1, 1,5,2,5,2, 1,3,5,2,5, 5,5,2,5,1, 5],
+        [5,5,1,2,5, 2,5,1,2,5, 5,1,2,5,2, 5,1,2,1,5, 5],
+        [5,5,2,2,5, 1,2,2,5,5, 2,2,3,2,1, 5,2,5,2,1, 5],
+        [5,3,1,5,2, 5,2,3,1,5, 2,2,2,5,2, 2,2,5,5,2, 0],
+        [5,1,5,5,5, 5,5,5,1,5, 5,5,5,5,5, 1,5,1,5,5, 5]],
+    slant(S, N, 20, 20),
+    maplist(label, S), 
+    maplist(portray_clause, S).
+
 list(N, Ls) :-
     length(Ls, N).
 
@@ -75,49 +102,63 @@ numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br]) :-
 /*-------------------------------------------*/
 build_looptable(Slants, Length, Table, Width):-
     /*the looptable is a 1d array with as many elements as we have numbers, values can go from 1 to number of elements*/
-    length(Table, Length),                                       
-    Table ins 0..Length, 
-    set_table_colum(Slants, Table, 0, Width).
+    length(Table, Length), Table ins 0..Length,
+    all_distinct(Table),
+    ordered(Table),
+    length(Groups, Length), maplist(list(0), Groups),                                 
+    set_table_colum(Slants, Table, 0, Width, Groups, FinalGroup),
+    exclude(empty, FinalGroup, L),
+    maplist(all_distinct, L),
+    write('Groups: '), write(L), nl,
+    write('Table: '), write(Table), nl, nl.
 
     /*(nth0(0, Points, P1), P1 #= 1 -> Tl #= 1).*/
 
-set_table_colum([],_, _, _).
-set_table_colum([S | Sr], Table, Index, Width):-
-    set_table_value(S, Table, Index, Width),
+set_table_colum([],_, _, _, F, F).
+set_table_colum([S | Sr], Table, Index, Width, Groups, FinalGroup):-
+    set_table_value(S, Table, Index, Width, Groups, F),
     I #= Index + Width-1,
-    set_table_colum(Sr, Table, I, Width).
+    set_table_colum(Sr, Table, I, Width, F, FinalGroup).
 
-set_table_value([], _, _ ,_).
-set_table_value([S | Sr], Table, Index, Width):-
+set_table_value([], _, _ ,_, F, F).
+set_table_value([S | Sr], Table, Index, Width, Groups, FinalGroup):-
     I0 #= Index, I1 #= Index +1, I2 #= Index + Width, I3 #= Index + Width +1,
     nth0(I0, Table, T0), nth0(I1, Table, T1), nth0(I2, Table, T2), nth0(I3, Table, T3),
-    connect(S, T0, T1, T2, T3, O0, O1, O2, O3),
+    connect(S, T0, T1, T2, T3, I0, I1, I2, I3, Groups, UpdatedGroup),
     I #= Index + 1,
-    set_table_value(Sr, Table, I, Width).
+    set_table_value(Sr, Table, I, Width, UpdatedGroup, FinalGroup).
 
-
-connect(V, Tl, _, _, Br, O1, _, _, O4):-
+connect(V, Tl, _, _, Br, I0, _, _, I3, Groups, UpdatedGroup):-
     V #= 0,             /*if this is a '\', connect top left and bottom right*/
-    loop_check(Tl, Br, O1, O4).
+    /*Tl #= Br,*/
+    loop_check(Tl, Br, I),
+    nth0(I, Groups, G1),
+    append([I0, I3], G1, G2),
+    replace(Groups, I, G2, UpdatedGroup).
 
-connect(V, _, Tr, Bl, _, _, O2, O3, _):-
+connect(V, _, Tr, Bl, _, _, I1, I2, _, Groups, UpdatedGroup):-
     V #= 1,             /*if this is a '/', connect top right and bottom left*/
-    loop_check(Tr, Bl, O2, O3).
+    /*Tr #= Bl,*/
+    loop_check(Tr, Bl, I),
+    nth0(I, Groups, G1),
+    append([I0, I3], G1, G2),
+    replace(Groups, I, G2, UpdatedGroup).
 
-loop_check(N, M, N2, M2):-
+loop_check(N, M, I):-
     N #\= M,                        /*N can not be equal to M*/
 
     /* if N is less then M, then we want to use N */
     N #< M,
-    N2 #= N, M2 #=N.
+    I #= N.
 
     
-loop_check(N, M, N2, M2):-
+loop_check(N, M, I):-
     N #\= M,                        /*N can not be equal to M*/
 
     /* if N is less then M, then we want to use M */
     M #< N,
-    N2 #= M, M2 #=M. 
+    I #= M. 
+
 
 /*-------------------*/
 /*Helpers*/
@@ -135,40 +176,14 @@ padd(List, Padded) :-
     append(List, [-1], Temp),
     append([-1], Temp, Padded).
 
-/*
-?- nth0(2,[a,b,c],X).
-X = c.
-*/
+replace([_|T], 0, X, [X|T]).
+replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
+replace(L, _, _, L).
 
-/*
-    *A slant board is N x M in size
-        - minimum size is 1x1 (one slant, four numbers)
-        - A board is considerd completed when:
-            * all slants have a value
-            * all numbers have fufiled thier requiermetns (X num of slant 'point' to them, no more no less)
-            * no slant can be placed in such a way that it would create a loop
+ordered([]).
+ordered([_]).
+ordered([X,Y|Xs]) :- X #=< Y, ordered([Y|Xs]).
 
-        - a board with a size NxM has (N+1)x(M+1) numbers
-        - one slat always has four neighbours (numbers)
-        - number are in the range 0-4 and _ which means it's free (can have any number of slant point to it)
+empty([]).
 
 
-        3x3 board
-            * jagged array
-                every other row is N+1 long
-                total length (rows) 2M+1
-        [
-        [_, 0, 1, 1]
-        [x, x, x]
-        [_, 0, 1, 1]
-        [x, x, x]
-        [_, 0, 1, 1]
-        ]
-
-    **Implementation idea:
-        1. make sure the size is correct
-        2. make sure that the number cell have a value between -1 -> 4 (where -1 is a 'free' cell)
-        3. make sure that each slant has a valid value 0 -> 1 ('/'' or '\'')
-        4. looking at a cell (number) make sure that it does not have more neighbours (slants) pointing to it then is allowed
-        5. make sure no slant is set in a way that would create a loop
-*/

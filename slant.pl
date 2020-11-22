@@ -9,7 +9,6 @@ fun :-
     [5, 5, 5, 2, 2],
     [5, 2, 1, 5, 5],
     [5, 5, 5, 5, 0]],
-
     slant(S, N, 4, 4),
     maplist(label, S), 
     maplist(portray_clause, S).
@@ -36,73 +35,51 @@ slant(Slants, Numbers, M, N) :-
     length(Border, 1),                  /*create a list of [-1, -1, -1...., M]*/
     maplist(list(M), Border), 
     append(Border, Bs), 
-    Bs ins -1,       
+    Bs ins -1,
+
+    Indcies #= N2 * M2,
+    length(LoopTable, Indcies),                                       
+    append(LoopTable, Ls), Ls ins 0..Indcies,          
 
     /*add the [-1] list to the begining and end of the Slants*/
     append(Slants, Border, Temp),
     append(Border, Temp, D),
-    column(Numbers, D),
-
-    Indcies #= N2 * M2,
-    build_looptable(Slants, Indcies, LoopTable, N2),
-    label(LoopTable),
-    write(LoopTable), nl.
+    column(Numbers, D, 0, N2, LoopTable).
 
 
-/*Make sure there is a valid number of slants pointing to a given number*/
-/*----------------------------------------------------------------------*/
-column([], _).
-column([N | Nr], [S1, S2 | Sr]) :-
+column([], _, _, _, _).
+column([N | Nr], [S1, S2 | Sr], Index, Width, Looptable) :-
     padd(S1, T),padd(S2, B),
     append([S2], Sr, Next),
-    numbers(N, T, B),
-    column(Nr, Next).
+    numbers(N, T, B, Index, Looptable, Width),
+    I #= Index + Width,
+    column(Nr, Next, I, Width, Looptable).
 
-numbers([], _, _).
-numbers([N | Nr], [_, T2 | Tr], [_, B2 | Br]):-
+numbers([], _, _, _, _, _).
+numbers([N | Nr], [_, T2 | Tr], [_, B2 | Br], Index, LoopTable, Width):-
     N #= 5,
-    append([T2], Tr, NextT),  append([B2], Br, NextB),   
-    numbers(Nr, NextT, NextB).
+    /*write(N), write(' : '), write(Index), nl,*/
+    append([T2], Tr, NextT),  append([B2], Br, NextB),
+    I #= Index +1,    
+    numbers(Nr, NextT, NextB, I, Looptable, Width).
 
-numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br]) :-
+numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br], Index, LoopTable, Width) :-
     matcher([T1, T2, B1, B2], [1, 0, 0, 1], Num),
     N #= Num,
-    append([T2], Tr, NextT),  append([B2], Br, NextB),      
-    numbers(Nr, NextT, NextB).
+    /*write(N), write(' : '), write(Index), nl,*/
+    set_loopTable(LoopTable, Width, Index, [T1, T2, B1, B2]),
+    append([T2], Tr, NextT),  append([B2], Br, NextB),    
+    I #= Index +1,    
+    numbers(Nr, NextT, NextB, I, Looptable, Width).
 
 
-/*Make sure there loops given a set of slants*/
-/*-------------------------------------------*/
-build_looptable(Slants, Length, Table, Width):-
-    /*the looptable is a 1d array with as many elements as we have numbers, values can go from 1 to number of elements*/
-    length(Table, Length),                                       
-    Table ins 0..Length, 
-    set_table_colum(Slants, Table, 0, Width).
-
-    /*(nth0(0, Points, P1), P1 #= 1 -> Tl #= 1).*/
-
-set_table_colum([],_, _, _).
-set_table_colum([S | Sr], Table, Index, Width):-
-    set_table_value(S, Table, Index, Width),
-    I #= Index + Width-1,
-    set_table_colum(Sr, Table, I, Width).
-
-set_table_value([], _, _ ,_).
-set_table_value([S | Sr], Table, Index, Width):-
-    I0 #= Index, I1 #= Index +1, I2 #= Index + Width, I3 #= Index + Width +1,
-    nth0(I0, Table, T0), nth0(I1, Table, T1), nth0(I2, Table, T2), nth0(I3, Table, T3),
-    connect(S, T0, T1, T2, T3, O0, O1, O2, O3),
-    I #= Index + 1,
-    set_table_value(Sr, Table, I, Width).
+/*if we have four neighbours*/
+set_loopTable(Looptable, Width, Index, Points):-
+    nth0(Index, LoopTable, Pivot),
+    nth0((Index - Width - 1), LoopTable, Tl),
 
 
-connect(V, Tl, _, _, Br, O1, _, _, O4):-
-    V #= 0,             /*if this is a '\', connect top left and bottom right*/
-    loop_check(Tl, Br, O1, O4).
-
-connect(V, _, Tr, Bl, _, _, O2, O3, _):-
-    V #= 1,             /*if this is a '/', connect top right and bottom left*/
-    loop_check(Tr, Bl, O2, O3).
+    (nth0(0, Points, P1), P1 #= 1 -> Tl #= 1).
 
 loop_check(N, M, N2, M2):-
     N #\= M,                        /*N can not be equal to M*/
@@ -117,7 +94,8 @@ loop_check(N, M, N2, M2):-
 
     /* if N is less then M, then we want to use M */
     M #< N,
-    N2 #= M, M2 #=M. 
+    N2 #= M, M2 #=M.   
+
 
 /*-------------------*/
 /*Helpers*/
