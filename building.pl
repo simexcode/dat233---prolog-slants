@@ -4,7 +4,7 @@ inputFile('./puzzle_unsolved.txt').
 
 /********************* solving the puzzle */
 doSolve(P,P).
-:- use_module(library(clpfd)).
+
 list(N, Ls) :-
     length(Ls, N).
 
@@ -27,97 +27,57 @@ slant(Slants, Numbers, M, N) :-
     length(Border, 1),                  /*create a list of [-1, -1, -1...., M]*/
     maplist(list(M), Border), 
     append(Border, Bs), 
-    Bs ins -1,       
+    Bs ins -1,   
 
+    Indcies #= N2 * M2,
+    /*the looptable is a 1d array with as many elements as we have numbers, values can go from 1 to number of elements*/
+    length(Table, Indcies), Table ins 1..Indcies, all_distinct(Table), ordered(Table),     
+    label(Table),
+    Sw #= M2 * -1,
     /*add the [-1] list to the begining and end of the Slants*/
     append(Slants, Border, Temp),
     append(Border, Temp, D),
-    column(Numbers, D),
-
-    Indcies #= N2 * M2,
-    build_looptable(Slants, Indcies, M2).
+    row(Numbers, D, Sw, M2, Table).
 
 
 /*Make sure there is a valid number of slants pointing to a given number*/
 /*----------------------------------------------------------------------*/
-column([], _).
-column([N | Nr], [S1, S2 | Sr]) :-
-    padd(S1, T),padd(S2, B),
-    append([S2], Sr, Next),
-    numbers(N, T, B),
-    column(Nr, Next).
+row([], _, _, _, _).
+row([N | Nr], [S1, S2 | Sr], Index, Width, Table) :-
+    
+    padd(S1, T), padd(S2, B),
+    numbers(N, T, B),               /*find what slant values work for row T, B, given the row numbers N*/
+   
+    loop_values(S1, Index, Width, Table, U),
+    I #= Index + Width,
+
+    row(Nr, [S2 | Sr], I, Width, U).
 
 numbers([], _, _).
 numbers([N | Nr], [_, T2 | Tr], [_, B2 | Br]):-
-    N #= 5,
-    append([T2], Tr, NextT),  append([B2], Br, NextB),   
-    numbers(Nr, NextT, NextB).
+    N #= 5, 
+    numbers(Nr, [T2| Tr], [B2 | Br]).
 
 numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br]) :-
     matcher([T1, T2, B1, B2], [1, 0, 0, 1], Num),
     N #= Num,
-    append([T2], Tr, NextT),  append([B2], Br, NextB),      
-    numbers(Nr, NextT, NextB).
+    numbers(Nr, [T2| Tr], [B2 | Br]).
 
-
-/*Make sure there loops given a set of slants*/
-/*-------------------------------------------*/
-build_looptable(Slants, Length, Width):-
-    /*the looptable is a 1d array with as many elements as we have numbers, values can go from 1 to number of elements*/
-    length(Table, Length), Table ins 1..Length, all_distinct(Table), ordered(Table),         
-    set_table_row(Slants, Table, 0, Width).
-
-
-set_table_row([], _, _, _).
-set_table_row([S | Sr], Table, Index, Width):-
-    label(Table),
-   /* write('Table: '), write(Table), nl,*/
-    set_table_value(S, Table, UpdatedTable, Index, Width),
-    I #= Index + Width,
-    set_table_row(Sr, UpdatedTable, I, Width).
-
-set_table_value([], T, T, _, _).
-set_table_value([S | Sr], Table, UpdatedTable, Index, Width):-
+loop_values([], _, _, T, T).
+loop_values([S | Sr], Index, Width, Table, U):- S #= (-1), loop_values(Sr, Index, Width, Table, U).
+loop_values([S | Sr], Index, Width, Table, U):- 
     
-    /*find the indecies of the four numbers connectet to this slant S, I0... I3*/
-    I0 #= Index, I1 #= Index +1, I2 #= Index + Width, I3 #= Index + Width +1,
-/*
-    write(I0), write( ' - '), write(I1), nl,
-    write(I2), write( ' - '), write(I3), nl, nl,
-*/
-    /*find the find the value for those indecies in our looptable, T0... T3*/
-    nth0(I0, Table, T0), nth0(I1, Table, T1), nth0(I2, Table, T2), nth0(I3, Table, T3),
+    S #= 0, I0 #= Index +1, I1 #= Index + Width, nth0(I0, Table, T0), nth0(I1, Table, T1),
 
-    connect(S, T0, T1, T2, T3, I0, I1, I2, I3, Table, Updated),
+    T0 #\= T1, 
+    smallest(T0, T1, I, O), 
+    replaceP(O, I, Table, UpdatedTable), 
+    Index1 #= Index + 1, 
+    loop_values(Sr, Index1, Width, UpdatedTable, U).
 
-    I #= Index + 1,
-    set_table_value(Sr, Updated, UpdatedTable, I, Width).
-
- /* a slant must have a value of 0 or 1 ('/ or '\') */
-
-
- connect(V, _, Tr, Bl, _, _, I1, I2, _, StartTable, UpdatedTable):-
-    V #= 0,                         /*if this is a '/', connect top right and bottom left*/
-    Tr #\= Bl,
-    loop_check(Tr, Bl, I),
-    replace(StartTable, I1, I, U),
-    replace(U, I2, I, UpdatedTable).
-
-connect(V, Tl, _, _, Br, I0, _, _, I3, StartTable, UpdatedTable):-
-    V #= 1,                         /*if this is a '\', connect top left and bottom right*/
-    Tl #\= Br,
-    loop_check(Tl, Br, I),
-    replace(StartTable, I0, I, U),
-    replace(U, I3, I, UpdatedTable).
-
-
-
-loop_check(N, M, I):-
-    N #< M, I #= N.                 /* if N is less then M, then we want to use N */
-    
-loop_check(N, M, I):-
-    M #< N, I #= M.                 /*if M is less then N, then we want to use M */
-
+loop_values([S | Sr], Index, Width, Table, U):- 
+    S #= 1, I0 #= Index, I1 #= Index + Width +1, nth0(I0, Table, T0), nth0(I1, Table, T1),
+    T0 #\= T1, smallest(T0, T1, I, O), replaceP(O, I, Table, UpdatedTable), Index1 #= Index + 1 , loop_values(Sr, Index1, Width, UpdatedTable, U).
 
 /*-------------------*/
 /*Helpers*/
@@ -127,7 +87,7 @@ matcher([E | List], [P | Pattern], Num):-
     E #\= P,
     matcher(List, Pattern, Num).
 matcher([E | List], [P | Pattern], Num):-
-    E #= P,
+    E #= P, 
     matcher(List, Pattern, R),
     Num #= R +1.
 
@@ -138,14 +98,33 @@ padd(List, Padded) :-
 replace([_|T], 0, X, [X|T]).
 replace([H|T], I, X, [H|R]):- NI #= I-1, replace(T, NI, X, R).
 
+replaceP(_, _, [], []).
+replaceP(O, R, [O|T], [R|T2]) :- !, replaceP(O, R, T, T2).
+replaceP(O, R, [H|T], [H|T2]) :- H #\= O, !, replaceP(O, R, T, T2).
+
 ordered([]).
 ordered([_]).
 ordered([X,Y|Xs]) :- X #=< Y, ordered([Y|Xs]).
 
+smallest(N, M, I, O):- N #< M, I #= N, O #= M.
+smallest(N, M, I, O):- M #< N, I #= M, O #= N.  
+
 empty([]).
 
+/*-------------------*/
+/*Printing*/
+printPuzzle([], []).
+printPuzzle([N], []):- numberRow(N).
+printPuzzle([N | Nr], [S | Sr]):- numberRow(N), nl, write(' '),   slantRow(S), nl, printPuzzle(Nr, Sr).
 
+numberRow([]).
+numberRow([N | Nr]):- N #= 5, write('_'), write(' '), !, numberRow(Nr).
+numberRow([N | Nr]):- N #\= 5,write(N), write(' '), !, numberRow(Nr).
 
+/* a slant must have a value of 0 or 1 ('/ or '\') */
+slantRow([]).
+slantRow([S | Sr]):- S #= 1, write('\\'), write(' '), slantRow(Sr).
+slantRow([S | Sr]):- S #= 0, write('/'), write(' '), slantRow(Sr).
 
 
 /********************** reading the input */
@@ -207,13 +186,9 @@ is_number_code(95,0).
 run:- inputFile(IF), see(IF), outputFile(F), tell(F), findKW(puzzles), readInt(N),  write('puzzles '), write(N), nl, solvePuzzles(N), told, seen, !.
 run:- told, seen. /* close the files */
 solvePuzzles(0).
-solvePuzzles(N):- N>0, readProblem(_,X),
- length(X, SizeY),
-  nth0(0, X, X1), length(X1, SizeX), NewSizeX is SizeX -1, NewSizeY is SizeY -1,
-  write(NewSizeX), write(', '), write(NewSizeY), nl,   maplist(label,X), maplist(portray_clause, X),nl,
+solvePuzzles(N):- N>0, readProblem(_, Numbers),
+  length(Numbers, SizeY), nth0(0, Numbers, X1), length(X1, SizeX), NewSizeX is SizeX -1, NewSizeY is SizeY -1,
+  write('size'), write(NewSizeX), write('x'), write(NewSizeY), nl,
 
-  slant(S22,X,NewSizeX,NewSizeY),
-  maplist(label,S22),
-  maplist(portray_clause, S22).
- 
+  slant(Slants, Numbers, NewSizeX, NewSizeY), maplist(label, Slants), printPuzzle(Numbers, Slants),
   !,  N1 is N-1, solvePuzzles(N1).
