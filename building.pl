@@ -1,74 +1,10 @@
 :- use_module(library(clpfd)).
+outputFile('./puzzle_solved.txt ').
+inputFile('./puzzle_unsolved.txt').
 
-/* declaring input and output files */
-outputFile('./solved.txt').
-inputFile('./unsolved.txt').
-
-/*********************** global control: starting the algorithm and the reading */
-run:- inputFile(IF), see(IF), outputFile(F), tell(F), findKW(puzzles), readInt(N),  write('puzzles '), write(N), nl, solveProblems(N), told, seen, !.
-run:- told, seen. /* close the files */
-
-fun :-
-    write('Start Solving...'), nl,
-    
-    N = [
-        [5, 1, 5, 5, 5, 5, 5, 1, 5, 5, 5, 1, 5],
-        [5, 3, 5, 3, 5, 3, 3, 5, 5, 1, 5, 1, 1],
-        [5, 5, 2, 1, 5, 5, 5, 2, 3, 5, 1, 2, 5],
-        [5, 2, 5, 1, 5, 2, 5, 3, 2, 2, 5, 5, 5],
-        [1, 2, 1, 5, 5, 3, 5, 2, 5, 5, 5, 1, 5],
-        [5, 2, 1, 5, 1, 5, 3, 5, 5, 5, 3, 5, 5],
-        [5, 5, 5, 5, 1, 3, 5, 5, 5, 1, 2, 2, 5],
-        [5, 2, 1, 1, 5, 5, 3, 3, 2, 5, 5, 5, 1],
-        [5, 2, 2, 5, 2, 1, 5, 5, 1, 5, 2, 2, 5],
-        [5, 1, 3, 1, 2, 2, 5, 2, 2, 2, 1, 2, 5],
-        [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]],
-
-    slant(S, N, 12, 10),
-    maplist(label, S), 
-    maplist(portray_clause, S).
-
-small :-
-    write('Start Solving...'), nl,
-    
-    N = [
-    [5, 5, 5, 2, 5],
-    [2, 2, 5, 5, 5],
-    [5, 5, 5, 2, 2],
-    [5, 2, 1, 5, 5],
-    [5, 5, 5, 5, 0]],
-
-    slant(S, N, 4, 4),
-    maplist(label, S), 
-    maplist(portray_clause, S).
-
-big :-
-    N = [
-        [5,5,5,5,5, 5,1,5,5,5, 5,5,5,5,5, 5,1,5,5,5, 5],
-        [5,2,2,2,2, 2,5,3,5,5, 3,1,5,1,5, 3,2,5,1,2, 5],
-        [5,5,5,5,5, 5,3,5,1,5, 3,5,3,2,5, 2,1,3,5,5, 1],
-        [1,5,1,5,5, 3,1,3,5,5, 2,2,5,5,2, 2,5,5,2,5, 5],
-        [1,5,2,2,3, 3,5,5,5,2, 5,1,5,2,5, 2,1,3,5,3, 1],
-        [5,1,5,3,2, 5,5,5,2,5, 2,5,5,5,5, 3,5,5,2,1, 5],
-        [5,3,5,5,5, 2,5,5,3,3, 2,5,5,3,1, 5,5,5,3,5, 5],
-        [1,1,5,5,5, 5,5,3,2,1, 2,2,3,5,5, 5,5,2,5,2, 1],
-        [5,5,2,5,5, 2,3,5,2,2, 2,5,5,2,5, 3,5,1,1,2, 5],
-        [5,1,2,3,5, 1,5,2,5,5, 5,2,5,5,3, 5,5,3,5,5, 1],
-        [5,5,3,5,3, 1,3,2,5,2, 2,5,3,5,5, 2,5,5,3,2, 5],
-        [5,3,5,5,2, 5,5,5,5,2, 2,3,1,5,5, 2,2,2,1,2, 5],
-        [5,5,3,1,5, 2,5,2,5,5, 5,3,2,5,5, 1,2,5,2,5, 1],
-        [5,5,5,5,1, 5,1,5,3,2, 5,5,5,3,5, 1,2,1,2,3, 5],
-        [5,5,2,1,5, 5,5,2,1,1, 5,5,5,3,2, 5,2,5,5,5, 5],
-        [5,2,2,5,2, 3,2,5,3,2, 5,5,3,5,5, 5,1,1,2,2, 5],
-        [5,2,5,5,1, 1,5,2,5,2, 1,3,5,2,5, 5,5,2,5,1, 5],
-        [5,5,1,2,5, 2,5,1,2,5, 5,1,2,5,2, 5,1,2,1,5, 5],
-        [5,5,2,2,5, 1,2,2,5,5, 2,2,3,2,1, 5,2,5,2,1, 5],
-        [5,3,1,5,2, 5,2,3,1,5, 2,2,2,5,2, 2,2,5,5,2, 0],
-        [5,1,5,5,5, 5,5,5,1,5, 5,5,5,5,5, 1,5,1,5,5, 5]],
-    slant(S, N, 20, 20),
-    maplist(label, S), 
-    maplist(portray_clause, S).
-
+/********************* solving the puzzle */
+doSolve(P,P).
+:- use_module(library(clpfd)).
 list(N, Ls) :-
     length(Ls, N).
 
@@ -128,14 +64,14 @@ numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br]) :-
 /*-------------------------------------------*/
 build_looptable(Slants, Length, Width):-
     /*the looptable is a 1d array with as many elements as we have numbers, values can go from 1 to number of elements*/
-    length(Table, Length), Table ins 1..Length, all_distinct(Table), ordered(Table),                
-    set_table_row(Slants, Table, 0, Width), !.
+    length(Table, Length), Table ins 1..Length, all_distinct(Table), ordered(Table),         
+    set_table_row(Slants, Table, 0, Width).
 
 
 set_table_row([], _, _, _).
 set_table_row([S | Sr], Table, Index, Width):-
     label(Table),
-    /*write('Table: '), write(Table), nl,*/
+   /* write('Table: '), write(Table), nl,*/
     set_table_value(S, Table, UpdatedTable, Index, Width),
     I #= Index + Width,
     set_table_row(Sr, UpdatedTable, I, Width).
@@ -163,22 +99,24 @@ set_table_value([S | Sr], Table, UpdatedTable, Index, Width):-
  connect(V, _, Tr, Bl, _, _, I1, I2, _, StartTable, UpdatedTable):-
     V #= 0,                         /*if this is a '/', connect top right and bottom left*/
     Tr #\= Bl,
-    loop_check(Tr, Bl, I, O),
-    replaceP(O, I, StartTable, UpdatedTable).
+    loop_check(Tr, Bl, I),
+    replace(StartTable, I1, I, U),
+    replace(U, I2, I, UpdatedTable).
 
 connect(V, Tl, _, _, Br, I0, _, _, I3, StartTable, UpdatedTable):-
     V #= 1,                         /*if this is a '\', connect top left and bottom right*/
     Tl #\= Br,
-    loop_check(Tl, Br, I, O),
-    replaceP(O, I, StartTable, UpdatedTable).
+    loop_check(Tl, Br, I),
+    replace(StartTable, I0, I, U),
+    replace(U, I3, I, UpdatedTable).
 
 
 
-loop_check(N, M, I, O):-
-    N #< M, I #= N, O #= M.                 /* if N is less then M, then we want to use N */
+loop_check(N, M, I):-
+    N #< M, I #= N.                 /* if N is less then M, then we want to use N */
     
-loop_check(N, M, I, O):-
-    M #< N, I #= M, O #= N.                 /*if M is less then N, then we want to use M */
+loop_check(N, M, I):-
+    M #< N, I #= M.                 /*if M is less then N, then we want to use M */
 
 
 /*-------------------*/
@@ -200,21 +138,82 @@ padd(List, Padded) :-
 replace([_|T], 0, X, [X|T]).
 replace([H|T], I, X, [H|R]):- NI #= I-1, replace(T, NI, X, R).
 
-replaceP(_, _, [], []).
-replaceP(O, R, [O|T], [R|T2]) :- !, replaceP(O, R, T, T2).
-replaceP(O, R, [H|T], [H|T2]) :- H #\= O, replaceP(O, R, T, T2).
-
 ordered([]).
 ordered([_]).
 ordered([X,Y|Xs]) :- X #=< Y, ordered([Y|Xs]).
 
 empty([]).
 
-/*-------------------*/
-/*Printing*/
-printPuzzle(N, S):-
 
-numberRow([]).
-numberRow([N | Nr]):- write(N), write(' '), numberRow(Nr).
-numberRow([]).
-numberRow([N | Nr]):- write(N), write(' '), numberRow(Nr).
+
+
+
+/********************** reading the input */
+
+readProblem(puzzle(X,Y),List):- 
+findKW(size), readInt(X), readInt(Y), NyY is Y +1,length(List,NyY), readLines(X,List), nl.
+   
+
+findKW(KW):- string_codes(KW,[H|T]), peek_code(H), readKW([H|T]),  !.
+findKW(_):- peek_code(-1), !, fail.
+findKW(KW):- get_code(_), findKW(KW).
+
+
+readKW([]):- get_code(_).
+readKW([H|T]):- get_code(H), readKW(T).
+
+readHintLine(0,[E]):- get_code(C),translate(C,E),get_code(_).
+readHintLine(N,[E|R]):- N>0, N1 is N-1, get_code(I), translate(I,E), get_code(_), readHintLine(N1,R).
+
+readXLine(0):- get_code(_).
+readXLine(N):- N>0, N1 is N-1, findKW('x'), readXLine(N1) .
+
+readLines(_,[]).
+readLines(N,[H]):- readHintLine(N,H).
+readLines(N,[H|T]):- readHintLine(N,H), readXLine(N), readLines(N,T).
+
+readInt(N):- get_code(M), handleCode(M,N).
+
+handleCode(M,N):- is_number_code(M,N1), !, continueInt(N1,N).
+handleCode(-1,_):- !, fail. /* EOF */
+handleCode(_,N):- readInt(N).
+
+continueInt(O,N):- get_code(M), is_number_code(M,M1), !, H is 10*O+M1, continueInt(H,N).
+continueInt(N,N).
+
+translate(95, 5).
+translate(32, ' ').
+translate(48, 0).
+translate(49, 1).
+translate(50, 2).
+translate(51, 3).
+translate(52, 4).
+translate(120,'x').
+translate(X, X).
+
+
+is_number_code(N, N1):- N>=48, N<58, N1 is N-48.
+is_number_code(95,0).
+
+/*********************** global control: starting the algorithm and the reading */
+% N is number of puzzles
+% F is the solved file path
+% IF is the unsolved file path
+% S is 'puzzle(7,5)puzzle(4,4)'
+% N is the puzzle size, 44, 75
+
+
+% add the puzzle in the unsolved_puzzle.txt, then write run. in the terminal
+run:- inputFile(IF), see(IF), outputFile(F), tell(F), findKW(puzzles), readInt(N),  write('puzzles '), write(N), nl, solvePuzzles(N), told, seen, !.
+run:- told, seen. /* close the files */
+solvePuzzles(0).
+solvePuzzles(N):- N>0, readProblem(_,X),
+ length(X, SizeY),
+  nth0(0, X, X1), length(X1, SizeX), NewSizeX is SizeX -1, NewSizeY is SizeY -1,
+  write(NewSizeX), write(', '), write(NewSizeY), nl,   maplist(label,X), maplist(portray_clause, X),nl,
+
+  slant(S22,X,NewSizeX,NewSizeY),
+  maplist(label,S22),
+  maplist(portray_clause, S22).
+ 
+  !,  N1 is N-1, solvePuzzles(N1).
