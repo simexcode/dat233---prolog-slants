@@ -1,0 +1,9 @@
+puzzles 1
+size 5x3
+_ 2 _ 1 _ _
+ x x x x x 
+_ _ 2 3 3 _
+ x x x x x 
+_ 3 2 _ _ 1
+ x x x x x 
+_ _ _ _ _ _

@@ -1,0 +1,15 @@
+puzzles 1
+size 4x6
+_ _ _ _ _
+ x x x x 
+_ 2 1 2 _
+ x x x x 
+_ 2 _ 2 _
+ x x x x 
+_ 1 2 2 1
+ x x x x 
+_ 1 2 _ _
+ x x x x 
+1 _ 3 2 _
+ x x x x 
+_ _ _ _ _

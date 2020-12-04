@@ -1,0 +1,9 @@
+puzzles 1
+size 3x3
+0 _ 0 _
+ x x x 
+_ 2 _ _
+ x x x 
+1 _ 3 _
+ x x x 
+_ 1 _ 1

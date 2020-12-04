@@ -42,6 +42,8 @@ small :-
     maplist(label, S), 
     printPuzzle(N, S).
 
+
+
 big :-
     N = [
         [5,5,5,5,5, 5,1,5,5,5, 5,5,5,5,5, 5,1,5,5,5, 5],
@@ -67,7 +69,7 @@ big :-
         [5,1,5,5,5, 5,5,5,1,5, 5,5,5,5,5, 1,5,1,5,5, 5]],
     slant(S, N, 20, 20),
     maplist(label, S), 
-    maplist(portray_clause, S).
+    printPuzzle(N, S).
 
 list(N, Ls) :-
     length(Ls, N).
@@ -106,7 +108,7 @@ slant(Slants, Numbers, M, N) :-
 
 /*Make sure there is a valid number of slants pointing to a given number*/
 /*----------------------------------------------------------------------*/
-row([], _, _, _, _).
+row([], _, _, _, _):- !.
 row([N | Nr], [S1, S2 | Sr], Index, Width, Table) :-
     
     padd(S1, T), padd(S2, B),
@@ -129,15 +131,9 @@ numbers([N | Nr], [T1, T2 | Tr], [B1, B2 | Br]) :-
 
 loop_values([], _, _, T, T).
 loop_values([S | Sr], Index, Width, Table, U):- S #= (-1), loop_values(Sr, Index, Width, Table, U).
-loop_values([S | Sr], Index, Width, Table, U):- 
-    
+loop_values([S | Sr], Index, Width, Table, U):-   
     S #= 0, I0 #= Index +1, I1 #= Index + Width, nth0(I0, Table, T0), nth0(I1, Table, T1),
-
-    T0 #\= T1, 
-    smallest(T0, T1, I, O), 
-    replaceP(O, I, Table, UpdatedTable), 
-    Index1 #= Index + 1, 
-    loop_values(Sr, Index1, Width, UpdatedTable, U).
+    T0 #\= T1, smallest(T0, T1, I, O), replaceP(O, I, Table, UpdatedTable), Index1 #= Index + 1, loop_values(Sr, Index1, Width, UpdatedTable, U).
 
 loop_values([S | Sr], Index, Width, Table, U):- 
     S #= 1, I0 #= Index, I1 #= Index + Width +1, nth0(I0, Table, T0), nth0(I1, Table, T1),

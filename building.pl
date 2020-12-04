@@ -42,7 +42,7 @@ slant(Slants, Numbers, M, N) :-
 
 /*Make sure there is a valid number of slants pointing to a given number*/
 /*----------------------------------------------------------------------*/
-row([], _, _, _, _).
+row([], _, _, _, _):- !.
 row([N | Nr], [S1, S2 | Sr], Index, Width, Table) :-
     
     padd(S1, T), padd(S2, B),
@@ -183,7 +183,7 @@ is_number_code(95,0).
 
 
 % add the puzzle in the unsolved_puzzle.txt, then write run. in the terminal
-run:- inputFile(IF), see(IF), outputFile(F), tell(F), findKW(puzzles), readInt(N),  write('puzzles '), write(N), nl, solvePuzzles(N), told, seen, !.
+run:- inputFile(IF), see(IF), outputFile(F), tell(F), findKW(puzzles), readInt(N),  write('puzzles '), write(N), solvePuzzles(N), told, seen, !.
 run:- told, seen. /* close the files */
 solvePuzzles(0).
 solvePuzzles(N):- N>0, readProblem(_, Numbers),
